@@ -11,7 +11,7 @@ const skills: Skill[] = [
   { name: "Express" },
   { name: "MongoDB" },
   { name: "Three.js" },
-  { name: "GSAP" },
+  { name: "CSS Animations" },
   { name: "Tailwind CSS" },
   { name: "JavaScript/TypeScript" },
 ];
@@ -109,7 +109,7 @@ const About = () => {
             </h2>
             
             <div ref={textRef} className="space-y-4 text-[#AAAAAA]">
-              <p>I'm a passionate full-stack developer specialized in the MERN stack with extensive experience in creating immersive web experiences using Three.js and GSAP animations.</p>
+              <p>I'm a passionate full-stack developer specialized in the MERN stack with extensive experience in creating immersive web experiences using Three.js and CSS animations.</p>
               
               <p>My journey in web development started with a fascination for creating interactive UIs that not only look great but also provide exceptional user experiences.</p>
               

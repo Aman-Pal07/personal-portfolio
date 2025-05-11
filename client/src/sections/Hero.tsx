@@ -85,7 +85,7 @@ const Hero = () => {
         </h1>
         
         <p ref={textRef} className="text-[#AAAAAA] max-w-2xl mx-auto text-lg mb-10 font-mono">
-          Crafting immersive digital experiences with React, Node.js, Three.js, and GSAP animations.
+          Crafting immersive digital experiences with React, Node.js, Three.js, and CSS animations.
         </p>
         
         <div 
