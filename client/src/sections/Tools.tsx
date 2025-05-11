@@ -1,8 +1,4 @@
 import { useRef, useEffect } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
 
 interface Tool {
   name: string;
@@ -33,73 +29,82 @@ const Tools = () => {
   useEffect(() => {
     if (!sectionRef.current) return;
 
-    const triggers: ScrollTrigger[] = [];
-    
-    // Animate heading
-    if (headingRef.current) {
-      const trigger = ScrollTrigger.create({
-        trigger: headingRef.current,
-        start: "top 80%",
-        once: true,
-        onEnter: () => {
-          gsap.fromTo(
-            headingRef.current,
-            { opacity: 0, y: 30 },
-            { opacity: 1, y: 0, duration: 0.8 }
-          );
-        },
-      });
-      
-      triggers.push(trigger);
-    }
-    
-    // Animate description
-    if (descriptionRef.current) {
-      const trigger = ScrollTrigger.create({
-        trigger: descriptionRef.current,
-        start: "top 80%",
-        once: true,
-        onEnter: () => {
-          gsap.fromTo(
-            descriptionRef.current,
-            { opacity: 0, y: 20 },
-            { opacity: 1, y: 0, duration: 0.8, delay: 0.2 }
-          );
-        },
-      });
-      
-      triggers.push(trigger);
-    }
-    
-    // Animate tools
-    if (toolsRef.current) {
-      const toolItems = toolsRef.current.querySelectorAll(".tool-item");
-      
-      const trigger = ScrollTrigger.create({
-        trigger: toolsRef.current,
-        start: "top 70%",
-        once: true,
-        onEnter: () => {
-          gsap.fromTo(
-            toolItems,
-            { opacity: 0, y: 50, scale: 0.8 },
-            { 
-              opacity: 1, 
-              y: 0, 
-              scale: 1,
-              duration: 0.5, 
-              stagger: 0.05,
-              ease: "back.out(1.7)"
+    // Set up Intersection Observer
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1,
+    };
+
+    const handleIntersection = (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const target = entry.target as HTMLElement;
+          const animationType = target.dataset.animationType || 'fade';
+          const delay = parseInt(target.dataset.delay || '0');
+          
+          // Animate based on data attributes
+          setTimeout(() => {
+            if (animationType === 'fade') {
+              target.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+              target.style.opacity = '1';
+              target.style.transform = target.dataset.transform || 'translateY(0)';
+            } else if (animationType === 'stagger') {
+              // Handle staggered children
+              const children = Array.from(target.children) as HTMLElement[];
+              children.forEach((child, index) => {
+                setTimeout(() => {
+                  child.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                  child.style.opacity = '1';
+                  child.style.transform = 'translateY(0) scale(1)';
+                }, index * 50); // 50ms stagger
+              });
             }
-          );
-        },
+          }, delay);
+          
+          // Unobserve once animation starts
+          observer.unobserve(entry.target);
+        }
       });
-      
-      triggers.push(trigger);
+    };
+
+    const observer = new IntersectionObserver(handleIntersection, observerOptions);
+
+    // Set up heading animation
+    if (headingRef.current) {
+      headingRef.current.style.opacity = '0';
+      headingRef.current.style.transform = 'translateY(30px)';
+      headingRef.current.dataset.animationType = 'fade';
+      headingRef.current.dataset.transform = 'translateY(0)';
+      headingRef.current.dataset.delay = '0';
+      observer.observe(headingRef.current);
     }
-    
+
+    // Set up description animation
+    if (descriptionRef.current) {
+      descriptionRef.current.style.opacity = '0';
+      descriptionRef.current.style.transform = 'translateY(20px)';
+      descriptionRef.current.dataset.animationType = 'fade';
+      descriptionRef.current.dataset.transform = 'translateY(0)';
+      descriptionRef.current.dataset.delay = '200';
+      observer.observe(descriptionRef.current);
+    }
+
+    // Set up tools grid animation
+    if (toolsRef.current) {
+      toolsRef.current.dataset.animationType = 'stagger';
+      observer.observe(toolsRef.current);
+      
+      // Set initial state for all tool items
+      const toolItems = Array.from(toolsRef.current.querySelectorAll('.tool-item')) as HTMLElement[];
+      toolItems.forEach(item => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(50px) scale(0.8)';
+      });
+    }
+
     return () => {
-      triggers.forEach(trigger => trigger.kill());
+      observer.disconnect();
     };
   }, []);
 

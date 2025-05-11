@@ -1,44 +1,52 @@
 import { useEffect } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Hero from "../sections/Hero";
 import About from "../sections/About";
 import Tools from "../sections/Tools";
 import Projects from "../sections/Projects";
 import Contact from "../sections/Contact";
 
-// Register GSAP plugins
-gsap.registerPlugin(ScrollTrigger);
-
 const Home = () => {
   useEffect(() => {
-    // Initialize smooth scrolling
-    const sections = document.querySelectorAll("section");
+    // Set up intersection observer for headings
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px 0px -100px 0px', // Similar to "top bottom-=100"
+      threshold: 0.1
+    };
     
+    const headingObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const heading = entry.target as HTMLElement;
+          
+          // Initial state
+          heading.style.opacity = '0';
+          heading.style.transform = 'translateY(50px)';
+          
+          // Animate in
+          setTimeout(() => {
+            heading.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+            heading.style.opacity = '1';
+            heading.style.transform = 'translateY(0)';
+          }, 50);
+          
+          // Unobserve after animation
+          headingObserver.unobserve(heading);
+        }
+      });
+    }, observerOptions);
+    
+    // Observe all section headings
+    const sections = document.querySelectorAll("section");
     sections.forEach((section) => {
       const heading = section.querySelector("h2");
-      
       if (heading) {
-        gsap.fromTo(
-          heading,
-          { y: 50, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.8,
-            scrollTrigger: {
-              trigger: heading,
-              start: "top bottom-=100",
-              toggleActions: "play none none none",
-            },
-          }
-        );
+        headingObserver.observe(heading);
       }
     });
     
-    // Clean up ScrollTrigger instances when component unmounts
     return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      headingObserver.disconnect();
     };
   }, []);
 

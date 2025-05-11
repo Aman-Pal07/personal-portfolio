@@ -1,11 +1,7 @@
 import { useRef, useEffect } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowUpRight } from "lucide-react";
 import ProjectCard from "../components/ProjectCard";
 import { projects } from "../utils/constants";
-
-gsap.registerPlugin(ScrollTrigger);
 
 const Projects = () => {
   const sectionRef = useRef<HTMLElement>(null);
@@ -17,64 +13,66 @@ const Projects = () => {
   useEffect(() => {
     if (!sectionRef.current) return;
 
-    const triggers: ScrollTrigger[] = [];
+    // Configure Intersection Observer
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
     
-    // Animate heading
+    const handleIntersection = (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const target = entry.target as HTMLElement;
+          const animationType = target.dataset.animation || 'fade-up';
+          const delay = Number(target.dataset.delay || 0);
+          
+          // Apply animations based on data attributes
+          setTimeout(() => {
+            if (animationType === 'fade-up') {
+              target.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+              target.style.opacity = '1';
+              target.style.transform = 'translateY(0)';
+            }
+          }, delay);
+          
+          // Unobserve after animation starts
+          observer.unobserve(target);
+        }
+      });
+    };
+    
+    const observer = new IntersectionObserver(handleIntersection, observerOptions);
+    
+    // Setup heading animation
     if (headingRef.current) {
-      const trigger = ScrollTrigger.create({
-        trigger: headingRef.current,
-        start: "top 80%",
-        once: true,
-        onEnter: () => {
-          gsap.fromTo(
-            headingRef.current,
-            { opacity: 0, y: 30 },
-            { opacity: 1, y: 0, duration: 0.8 }
-          );
-        },
-      });
-      
-      triggers.push(trigger);
+      headingRef.current.style.opacity = '0';
+      headingRef.current.style.transform = 'translateY(30px)';
+      headingRef.current.dataset.animation = 'fade-up';
+      headingRef.current.dataset.delay = '0';
+      observer.observe(headingRef.current);
     }
     
-    // Animate description
+    // Setup description animation
     if (descriptionRef.current) {
-      const trigger = ScrollTrigger.create({
-        trigger: descriptionRef.current,
-        start: "top 80%",
-        once: true,
-        onEnter: () => {
-          gsap.fromTo(
-            descriptionRef.current,
-            { opacity: 0, y: 20 },
-            { opacity: 1, y: 0, duration: 0.8, delay: 0.2 }
-          );
-        },
-      });
-      
-      triggers.push(trigger);
+      descriptionRef.current.style.opacity = '0';
+      descriptionRef.current.style.transform = 'translateY(20px)';
+      descriptionRef.current.dataset.animation = 'fade-up';
+      descriptionRef.current.dataset.delay = '200';
+      observer.observe(descriptionRef.current);
     }
     
-    // Animate button
+    // Setup button animation
     if (buttonRef.current) {
-      const trigger = ScrollTrigger.create({
-        trigger: buttonRef.current,
-        start: "top 90%",
-        once: true,
-        onEnter: () => {
-          gsap.fromTo(
-            buttonRef.current,
-            { opacity: 0, y: 20 },
-            { opacity: 1, y: 0, duration: 0.8 }
-          );
-        },
-      });
-      
-      triggers.push(trigger);
+      buttonRef.current.style.opacity = '0';
+      buttonRef.current.style.transform = 'translateY(20px)';
+      buttonRef.current.dataset.animation = 'fade-up';
+      buttonRef.current.dataset.delay = '300';
+      observer.observe(buttonRef.current);
     }
     
     return () => {
-      triggers.forEach(trigger => trigger.kill());
+      observer.disconnect();
     };
   }, []);
 

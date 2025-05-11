@@ -1,11 +1,7 @@
 import { useRef, useState, useEffect, FormEvent, ChangeEvent } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useToast } from "@/hooks/use-toast";
 import ServiceOption from "../components/ServiceOption";
 import Model from "../components/three/Model";
-
-gsap.registerPlugin(ScrollTrigger);
 
 interface Service {
   id: string;
@@ -47,78 +43,91 @@ const Contact = () => {
   useEffect(() => {
     if (!sectionRef.current) return;
 
-    const triggers: ScrollTrigger[] = [];
+    // Set up Intersection Observer for animations
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
+
+    const handleIntersection = (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const target = entry.target as HTMLElement;
+          const animationType = target.dataset.animationType || 'fade';
+          const delay = parseInt(target.dataset.delay || '0');
+          
+          // Apply animation based on data attributes
+          if (animationType === 'heading-stagger') {
+            // Handle heading with staggered spans
+            const headingLines = target.querySelectorAll('span');
+            headingLines.forEach((line, index) => {
+              const spanElement = line as HTMLElement;
+              spanElement.style.opacity = '0';
+              spanElement.style.transform = 'translateX(-30px)';
+              
+              setTimeout(() => {
+                spanElement.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                spanElement.style.opacity = '1';
+                spanElement.style.transform = 'translateX(0)';
+              }, delay + (index * 100)); // 100ms stagger
+            });
+          } else if (animationType === 'scale') {
+            // Scale animation for 3D model
+            setTimeout(() => {
+              target.style.transition = 'opacity 1s ease, transform 1s ease';
+              target.style.opacity = '1';
+              target.style.transform = 'scale(1)';
+            }, delay);
+          } else if (animationType === 'form-stagger') {
+            // Staggered animation for form elements
+            const formElements = target.querySelectorAll('input, textarea, label, button, .service-option');
+            formElements.forEach((element, index) => {
+              const formElement = element as HTMLElement;
+              formElement.style.opacity = '0';
+              formElement.style.transform = 'translateY(20px)';
+              
+              setTimeout(() => {
+                formElement.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                formElement.style.opacity = '1';
+                formElement.style.transform = 'translateY(0)';
+              }, delay + (index * 30)); // 30ms stagger
+            });
+          }
+          
+          // Unobserve once animation is triggered
+          observer.unobserve(target);
+        }
+      });
+    };
     
-    // Animate heading
+    const observer = new IntersectionObserver(handleIntersection, observerOptions);
+    
+    // Set up heading animation
     if (headingRef.current) {
-      const headingLines = headingRef.current.querySelectorAll("span");
-      
-      const trigger = ScrollTrigger.create({
-        trigger: headingRef.current,
-        start: "top 80%",
-        once: true,
-        onEnter: () => {
-          gsap.fromTo(
-            headingLines,
-            { opacity: 0, x: -30 },
-            { 
-              opacity: 1, 
-              x: 0, 
-              duration: 0.5, 
-              stagger: 0.1
-            }
-          );
-        },
-      });
-      
-      triggers.push(trigger);
+      headingRef.current.dataset.animationType = 'heading-stagger';
+      headingRef.current.dataset.delay = '0';
+      observer.observe(headingRef.current);
     }
     
-    // Animate 3D model container
+    // Set up model animation
     if (modelRef.current) {
-      const trigger = ScrollTrigger.create({
-        trigger: modelRef.current,
-        start: "top 70%",
-        once: true,
-        onEnter: () => {
-          gsap.fromTo(
-            modelRef.current,
-            { opacity: 0, scale: 0.8 },
-            { opacity: 1, scale: 1, duration: 1, ease: "back.out(1.7)" }
-          );
-        },
-      });
-      
-      triggers.push(trigger);
+      modelRef.current.style.opacity = '0';
+      modelRef.current.style.transform = 'scale(0.8)';
+      modelRef.current.dataset.animationType = 'scale';
+      modelRef.current.dataset.delay = '0';
+      observer.observe(modelRef.current);
     }
     
-    // Animate form
+    // Set up form animation
     if (formRef.current) {
-      const formElements = formRef.current.querySelectorAll("input, textarea, label, button, .service-option");
-      
-      const trigger = ScrollTrigger.create({
-        trigger: formRef.current,
-        start: "top 70%",
-        once: true,
-        onEnter: () => {
-          gsap.fromTo(
-            formElements,
-            { opacity: 0, y: 20 },
-            { 
-              opacity: 1, 
-              y: 0, 
-              duration: 0.5, 
-              stagger: 0.03
-            }
-          );
-        },
-      });
-      
-      triggers.push(trigger);
+      formRef.current.dataset.animationType = 'form-stagger';
+      formRef.current.dataset.delay = '0';
+      observer.observe(formRef.current);
     }
     
     return () => {
-      triggers.forEach(trigger => trigger.kill());
+      observer.disconnect();
     };
   }, []);
 
@@ -162,10 +171,10 @@ const Contact = () => {
     }
     
     // Get selected services
-    const services = Object.entries(selectedServices)
+    const selectedServicesList = Object.entries(selectedServices)
       .filter(([_, isSelected]) => isSelected)
       .map(([id]) => {
-        const service = services.find(s => s.id === id);
+        const service = services.find(service => service.id === id);
         return service ? service.label : "";
       })
       .filter(Boolean);

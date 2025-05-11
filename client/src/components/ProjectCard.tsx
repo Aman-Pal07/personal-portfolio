@@ -1,6 +1,5 @@
 import { useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { gsap } from "gsap";
 import type { Project } from "../types/project";
 
 interface ProjectCardProps {
@@ -11,29 +10,63 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // GSAP animation when card comes into view
+  // Animation when card comes into view
   useEffect(() => {
     if (!cardRef.current) return;
 
     const element = cardRef.current;
     
-    gsap.fromTo(
-      element,
-      { 
-        y: 50,
-        opacity: 0 
-      },
-      { 
-        y: 0,
-        opacity: 1,
-        duration: 0.8,
-        scrollTrigger: {
-          trigger: element,
-          start: "top bottom-=100",
-          toggleActions: "play none none none"
+    // Configure Intersection Observer for scroll animations
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px 0px -100px 0px', // Similar to "top bottom-=100"
+      threshold: 0.1
+    };
+    
+    const handleIntersection = (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          // Set initial state
+          entry.target.classList.add('animate-card');
+          
+          // Only observe once
+          observer.unobserve(entry.target);
+        }
+      });
+    };
+    
+    // Initially set the card to be invisible
+    element.style.opacity = '0';
+    element.style.transform = 'translateY(50px)';
+    
+    // Add CSS class for animation
+    const style = document.createElement('style');
+    style.textContent = `
+      .animate-card {
+        animation: cardFadeIn 0.8s ease forwards;
+      }
+      
+      @keyframes cardFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
       }
-    );
+    `;
+    document.head.appendChild(style);
+    
+    // Create and use the observer
+    const observer = new IntersectionObserver(handleIntersection, observerOptions);
+    observer.observe(element);
+    
+    return () => {
+      observer.disconnect();
+      document.head.removeChild(style);
+    };
   }, []);
 
   const handleClick = () => {
