@@ -12,7 +12,7 @@ interface UseScrollAnimationOptions {
   customAnimation?: (element: HTMLElement) => void;
 }
 
-// CSS animations equivalent to the original GSAP animations
+// CSS animations for scrolling effects
 const CSS_ANIMATIONS = {
   fadeInUp: (element: HTMLElement, duration: number, delay: number, ease: string) => {
     element.style.opacity = '0';
@@ -73,7 +73,7 @@ const CSS_ANIMATIONS = {
 
 // Convert ease strings to CSS compatible easing
 const convertEase = (ease: string): string => {
-  // Map GSAP ease to CSS ease
+  // Map animation easing functions to CSS equivalents
   const easeMap: Record<string, string> = {
     'power0.in': 'linear',
     'power0.out': 'linear',

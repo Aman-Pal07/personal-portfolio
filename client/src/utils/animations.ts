@@ -1,4 +1,4 @@
-// CSS-based animations without GSAP dependencies
+// CSS-based animations for enhanced user experience
 
 // Helper to inject keyframes once
 const injectKeyframes = () => {

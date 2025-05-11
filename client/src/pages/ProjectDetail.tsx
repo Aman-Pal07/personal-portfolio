@@ -135,7 +135,7 @@ const ProjectDetail = () => {
             </h2>
             
             <p className="text-[#AAAAAA] font-mono">
-              {project.longDescription || "This project aimed to create an interactive web experience that balances aesthetics with functionality. Using the latest web technologies including React, Three.js, and GSAP, I developed a solution that delivers smooth animations, interactive 3D elements, and an engaging user interface."}
+              {project.longDescription || "This project aimed to create an interactive web experience that balances aesthetics with functionality. Using the latest web technologies including React, Three.js, and CSS animations, I developed a solution that delivers smooth transitions, interactive 3D elements, and an engaging user interface."}
             </p>
             
             <h3 className="font-['Press_Start_2P'] text-lg text-white mt-8 mb-4">
