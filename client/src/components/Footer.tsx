@@ -11,7 +11,7 @@ const Footer = () => {
               DEV_<span className="text-[#39FF14]">PORTFOLIO</span>
             </Link>
             <p className="text-[#AAAAAA] text-sm mt-2 font-mono">
-              © {new Date().getFullYear()} • Built with React, Three.js & GSAP
+              © {new Date().getFullYear()} • Built with React, Three.js & CSS Animations
             </p>
           </div>
 
