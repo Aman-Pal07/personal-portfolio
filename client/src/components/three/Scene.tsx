@@ -40,22 +40,27 @@ function Scene({ className = "" }: SceneProps) {
     renderer.toneMappingExposure = 1.25;
     container.appendChild(renderer.domElement);
 
-    // Add lights
-    const ambientLight = new THREE.AmbientLight(0x404040, 2);
+    // Add enhanced lighting
+    const ambientLight = new THREE.AmbientLight(0x404040, 4);
     scene.add(ambientLight);
 
-    // Add cyberpunk colored point lights
-    const greenPointLight = new THREE.PointLight(0x39ff14, 3, 10);
-    greenPointLight.position.set(2, 2, 2);
-    scene.add(greenPointLight);
+    // Add vibrant blue themed lights
+    const mainBlueLight = new THREE.PointLight(0x00ffff, 5, 15);
+    mainBlueLight.position.set(2, 2, 2);
+    scene.add(mainBlueLight);
 
-    const purplePointLight = new THREE.PointLight(0x8a2be2, 2, 10);
-    purplePointLight.position.set(-2, 1, -1);
-    scene.add(purplePointLight);
+    const brightBlueLight = new THREE.PointLight(0x00bfff, 4, 12);
+    brightBlueLight.position.set(-2, 1, -1);
+    scene.add(brightBlueLight);
 
-    const bluePointLight = new THREE.PointLight(0x00bfff, 1, 10);
-    bluePointLight.position.set(0, -2, 2);
-    scene.add(bluePointLight);
+    const accentLight = new THREE.PointLight(0x0088ff, 3, 10);
+    accentLight.position.set(0, -2, 2);
+    scene.add(accentLight);
+
+    // Add bloom effect light
+    const bloomLight = new THREE.PointLight(0x00ffff, 3, 8);
+    bloomLight.position.set(1, 1, 1);
+    scene.add(bloomLight);
 
     // Add emissive parts to glow
     const bloomPass = {
@@ -76,28 +81,133 @@ function Scene({ className = "" }: SceneProps) {
 
     // Load 3D model
     const loader = new GLTFLoader();
+    // Log the attempted path
+    console.log(
+      "Attempting to load model from:",
+      "/models/sci-fi_computer.glb"
+    );
+
     loader.load(
-      "/models/scene.gltf", // Path relatives to the public folder
+      "/models/sci-fi_computer.glb",
       (gltf) => {
         const model = gltf.scene;
+        console.log("Model loaded successfully:", model);
 
         // Scale and position the model
-        model.scale.set(1.5, 1.5, 1.5);
-        model.position.set(0, -1, 0);
+        model.scale.set(0.8, 0.8, 0.8);
+        model.position.set(0, -0.5, 0);
         model.rotation.set(0, Math.PI / 4, 0);
+
+        // Create canvas for screen texture with custom text
+        const canvas = document.createElement("canvas");
+        canvas.width = 1024; // Increased resolution
+        canvas.height = 1024;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          // Fill background with dark color
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          // Add subtle grid effect
+
+          // Add green text with enhanced glow effect
+          ctx.shadowColor = "#39FF14";
+
+          // Title - made smaller and moved up
+          ctx.font = "bold 56px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("Full Stack Developer", canvas.width / 2, 120);
+
+          // Code section - adjusted for better fit
+          ctx.font = "28px monospace";
+          ctx.textAlign = "left";
+          const startX = 80;
+          let currentY = 500;
+          const lineHeight = 40;
+
+          const drawCodeLine = (text: string, indent = 0) => {
+            // Add text shadow for better visibility
+            ctx.shadowBlur = 8;
+            ctx.fillText(text, startX + indent * 25, currentY);
+            currentY += lineHeight;
+          };
+
+          // Draw main content with compact spacing
+          drawCodeLine("def init():");
+          drawCodeLine("self.skills = {", 1);
+          drawCodeLine('"frontend": ["React", "TypeScript", "ThreeJS"],', 2);
+          drawCodeLine('"backend": ["Node", "Express", "Python"],', 2);
+          drawCodeLine('"database": ["SQL", "MongoDB", "PostgreSQL"]', 2);
+          drawCodeLine("}", 1);
+          currentY += lineHeight / 3; // Reduced spacing
+          drawCodeLine("self.experience = 5  # years", 1);
+          drawCodeLine("return self.connect()", 1);
+          currentY += lineHeight / 3;
+
+          // Portfolio link with slightly larger font
+          ctx.font = "30px monospace";
+          drawCodeLine("# Portfolio: github.com/developer");
+        }
+
+        // Create texture from canvas
+        const screenTexture = new THREE.CanvasTexture(canvas);
 
         // Apply materials if needed
         model.traverse((child) => {
           if (child instanceof THREE.Mesh) {
-            // Make screen emissive
-            if (child.name.includes("screen")) {
-              child.material.emissive = new THREE.Color(0x39ff14);
-              child.material.emissiveIntensity = 0.8;
+            console.log("Found mesh:", child.name);
+
+            // Apply screen texture to any screen-like part
+            if (
+              child.name.includes("screen") ||
+              child.name.includes("Screen") ||
+              child.name.includes("monitor") ||
+              child.name.includes("display")
+            ) {
+              // Create material for screen with our custom texture
+              const screenMaterial = new THREE.MeshStandardMaterial({
+                map: screenTexture,
+                emissive: new THREE.Color(0x39ff14), // Green emissive glow
+                emissiveIntensity: 0.8,
+                emissiveMap: screenTexture,
+              });
+
+              // Replace the material
+              if (Array.isArray(child.material)) {
+                child.material.forEach((_, index) => {
+                  child.material[index] = screenMaterial;
+                });
+              } else {
+                child.material = screenMaterial;
+              }
+            }
+            // Enhance other materials
+            else if (child.material) {
+              if (
+                child.name.includes("computer") ||
+                child.name.includes("body") ||
+                child.name.includes("base")
+              ) {
+                if (Array.isArray(child.material)) {
+                  child.material.forEach((mat) => {
+                    mat.metalness = 0.8;
+                    mat.roughness = 0.2;
+                  });
+                } else {
+                  child.material.metalness = 0.8;
+                  child.material.roughness = 0.2;
+                }
+              }
             }
 
-            // Add reflections
+            // Ensure materials update
             if (child.material) {
-              child.material.needsUpdate = true;
+              if (Array.isArray(child.material)) {
+                child.material.forEach((mat) => {
+                  mat.needsUpdate = true;
+                });
+              } else {
+                child.material.needsUpdate = true;
+              }
             }
           }
         });
@@ -112,17 +222,19 @@ function Scene({ className = "" }: SceneProps) {
         // Error handling
         console.error("An error happened loading the model:", error);
 
-        // Fallback: Create a simple placeholder cube
+        // Create a fallback model if loading fails
         const geometry = new THREE.BoxGeometry(1, 1, 1);
         const material = new THREE.MeshStandardMaterial({
-          color: 0x39ff14,
-          emissive: 0x39ff14,
-          emissiveIntensity: 0.2,
-          metalness: 0.7,
+          color: 0x00ffff,
+          metalness: 0.8,
           roughness: 0.2,
+          emissive: 0x0088ff,
+          emissiveIntensity: 0.5,
         });
         const cube = new THREE.Mesh(geometry, material);
+        cube.position.set(0, 0, 0);
         scene.add(cube);
+        console.log("Created fallback cube model due to loading error");
       }
     );
 
@@ -132,16 +244,33 @@ function Scene({ className = "" }: SceneProps) {
     const particlePositions = new Float32Array(particleCount * 3);
     const particleSizes = new Float32Array(particleCount);
 
+    const colors = new Float32Array(particleCount * 3);
     for (let i = 0; i < particleCount; i++) {
       const i3 = i * 3;
       // Position particles in a sphere around the center
-      particlePositions[i3] = (Math.random() - 0.5) * 20;
-      particlePositions[i3 + 1] = (Math.random() - 0.5) * 20;
-      particlePositions[i3 + 2] = (Math.random() - 0.5) * 20;
+      particlePositions[i3] = (Math.random() - 0.5) * 30;
+      particlePositions[i3 + 1] = (Math.random() - 0.5) * 30;
+      particlePositions[i3 + 2] = (Math.random() - 0.5) * 30;
 
       // Random sizes
-      particleSizes[i] = Math.random() * 0.1 + 0.05;
+      particleSizes[i] = Math.random() * 0.2 + 0.1;
+
+      // Random colors between green and purple
+      const colorChoice = Math.random();
+      if (colorChoice < 0.4) {
+        colors[i3] = 0.22; // R
+        colors[i3 + 1] = 1.0; // G
+        colors[i3 + 2] = 0.078; // B
+      } else {
+        colors[i3] = 0.54; // R
+        colors[i3 + 1] = 0.17; // G
+        colors[i3 + 2] = 0.89; // B
+      }
     }
+    particleGeometry.setAttribute(
+      "color",
+      new THREE.BufferAttribute(colors, 3)
+    );
 
     particleGeometry.setAttribute(
       "position",
@@ -152,14 +281,19 @@ function Scene({ className = "" }: SceneProps) {
       new THREE.BufferAttribute(particleSizes, 1)
     );
 
+    // Create particle texture from SVG
+    const particleTexture = new THREE.TextureLoader().load("/circle.svg");
+
     // Create shader material for particles
     const particleMaterial = new THREE.PointsMaterial({
-      size: 0.1,
+      size: 0.15,
       sizeAttenuation: true,
-      color: 0x39ff14,
+      map: particleTexture,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.8,
       blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      vertexColors: true,
     });
 
     const particles = new THREE.Points(particleGeometry, particleMaterial);
