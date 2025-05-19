@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@300;400;600;700&family=Inconsolata:wght@400;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@300;400;600;700&family=Inconsolata:wght@400;600&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -17,7 +17,7 @@
   --secondary-foreground: 0 0% 98%;
   --muted: 0 0% 14%;
   --muted-foreground: 0 0% 67%;
-  --accent: 120 100% 54%; 
+  --accent: 120 100% 54%;
   --accent-foreground: 0 0% 0%;
   --destructive: 0 63% 31%;
   --destructive-foreground: 0 0% 98%;
@@ -51,8 +51,8 @@
 
 body {
   font-family: "Inter", sans-serif;
-  background-color: #0A0A0A;
-  color: #FAFAFA;
+  background-color: #0a0a0a;
+  color: #fafafa;
   overflow-x: hidden;
 }
 
@@ -67,16 +67,16 @@ body {
 
 @layer components {
   .pixel-grid {
-    background-image: linear-gradient(#222 1px, transparent 1px), 
-                      linear-gradient(90deg, #222 1px, transparent 1px);
+    background-image: linear-gradient(#222 1px, transparent 1px),
+      linear-gradient(90deg, #222 1px, transparent 1px);
     background-size: 20px 20px;
   }
-  
+
   .text-outline {
-    -webkit-text-stroke: 1px #FAFAFA;
+    -webkit-text-stroke: 1px #fafafa;
     color: transparent;
   }
-  
+
   @keyframes float {
     0% {
       transform: translateY(0) translateX(0);
@@ -94,23 +94,23 @@ body {
       transform: translateY(0) translateX(0);
     }
   }
-  
+
   .neon-glow {
     filter: drop-shadow(0 0 10px hsl(var(--primary)));
   }
-  
+
   .purple-glow {
     filter: drop-shadow(0 0 10px hsl(var(--secondary)));
   }
-  
+
   .retro-button {
     position: relative;
     overflow: hidden;
     transition: all 0.3s;
   }
-  
+
   .retro-button:after {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
@@ -119,16 +119,22 @@ body {
     background: rgba(57, 255, 20, 0.1);
     transition: all 0.3s;
   }
-  
+
   .retro-button:hover:after {
     left: 0;
   }
 }
 
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 .floating {
@@ -142,4 +148,36 @@ body {
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Floating animation for particles */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-20px) translateX(10px);
+  }
+}
+
+/* Pulse animation for borders */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Ensure smooth transforms */
+.tool-item {
+  transform-style: preserve-3d;
+}
+
+/* Apply float animation to particles */
+.animate-float {
+  animation: float infinite ease-in-out;
 }
